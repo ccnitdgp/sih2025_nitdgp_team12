@@ -228,6 +228,13 @@ function GovtDashboardLayoutContent({ children }: { children: React.ReactNode })
         </nav>
 
         <div className="p-4 border-t border-gray-100 bg-gray-50/50">
+                <button 
+                    onClick={handleLogout} 
+                    className="w-full mt-2 inline-flex items-center justify-center text-red-600 hover:bg-red-50 text-sm font-medium h-9 rounded-md transition-colors border border-red-300"
+                >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    {t('logout')}
+                </button>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm">
               <User className="h-4 w-4 text-gray-600" />
@@ -277,6 +284,7 @@ function GovtDashboardLayoutContent({ children }: { children: React.ReactNode })
               </span>
               <span className="text-xs font-medium text-green-700">{t('systemLive')}</span>
             </div>
+            
 
             <div className="h-6 w-px bg-gray-200 mx-1"></div>
             
