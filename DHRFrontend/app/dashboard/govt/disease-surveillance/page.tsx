@@ -2,7 +2,20 @@
 import { useState } from "react"
 
 export default function Dashboard() {
-  const [selectedDistrict, setSelectedDistrict] = useState(null)
+
+  interface District {
+  id: number;
+  district: string;
+  icon: string;
+  workers: string;
+  liveRisk: string;
+  predictedRisk: string;
+  highRisk: string;
+  color: string;
+  }
+const [selectedDistrict, setSelectedDistrict] = useState<District | null>(null);
+
+  
   const districts = [
     {
       id: 1,
@@ -85,6 +98,7 @@ export default function Dashboard() {
       color: "green",
     },
   ]
+  
   const alerts = [
     {
       id: 1,
