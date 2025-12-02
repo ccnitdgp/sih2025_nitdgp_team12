@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 
 const menuItems = [
-  { icon: Home, label: "Dashboard", href: "/" },
+  { icon: Home, label: "Dashboard", href: "/dashboard/worker" },
   { icon: CreditCard, label: "Health ID", href: "/health-id" },
   { icon: Syringe, label: "Vaccinations", href: "/vaccinations", badge: "4", badgeColor: "bg-green-500" },
   { icon: Pill, label: "Medicines", href: "/medicines", badge: "2", badgeColor: "bg-green-500" },

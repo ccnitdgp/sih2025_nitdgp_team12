@@ -5,15 +5,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertTriangle, Clock, Filter, Heart, MapPin, Package, Truck, Users, X, Zap } from "lucide-react"
 import { useCallback, useMemo, useState } from "react"
-// Added Popover for cleaner Hotspot Details display
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-
-// --- Data Definitions (Moved outside component for better performance) ---
 
 interface OutbreakAlert {
   id: number
   disease: string
-  location: string // Must match a Hotspot name for filtering
+  location: string
   date: string
   status: "Pending" | "Action Taken"
   cases: number
@@ -42,7 +39,7 @@ interface Resource {
   available: number
   total: number
   status: "good" | "medium" | "low"
-  icon: React.ElementType // Store icon component directly
+  icon: React.ElementType
 }
 
 const outbreakAlertsData: OutbreakAlert[] = [
@@ -62,7 +59,7 @@ const actionLogData: ActionLogEntry[] = [
 ]
 
 const hotspotsData: Hotspot[] = [
-  { id: 1, name: "Kochi Camp Alpha", cases: 15, workers: 3, risk: "high", x: 45, y: 60 }, // Updated case count for the alert
+  { id: 1, name: "Kochi Camp Alpha", cases: 15, workers: 3, risk: "high", x: 45, y: 60 },
   { id: 2, name: "Thrissur Camp Beta", cases: 3, workers: 2, risk: "medium", x: 35, y: 45 },
   { id: 3, name: "Kozhikode Camp Gamma", cases: 8, workers: 4, risk: "high", x: 25, y: 25 },
   { id: 4, name: "Palakkad Camp Delta", cases: 15, workers: 2, risk: "low", x: 40, y: 50 },
@@ -75,51 +72,36 @@ const emergencyResourcesData: Resource[] = [
   { name: "Emergency Kits", available: 45, total: 100, status: "low", icon: Package },
 ]
 
-
-// --- Helper Functions and Components for Clarity ---
-
 const getSeverityColorClasses = (severity: string) => {
-  if (severity === "high") return "bg-red-100 text-red-800 border-red-300"
-  if (severity === "medium") return "bg-yellow-100 text-yellow-800 border-yellow-300"
-  return "bg-green-100 text-green-800 border-green-300"
+  switch (severity) {
+    case "high": return "bg-red-100 text-red-800 border-red-300"
+    case "medium": return "bg-yellow-100 text-yellow-800 border-yellow-300"
+    default: return "bg-green-100 text-green-800 border-green-300"
+  }
 }
 
 const getStatusColorClasses = (status: string) => {
-  if (status === "Pending") return "bg-red-500 hover:bg-red-600"
-  if (status === "In Progress") return "bg-blue-500"
-  return "bg-green-500"
+  switch(status) {
+    case "Pending": return "bg-red-500 hover:bg-red-600"
+    case "In Progress": return "bg-blue-500"
+    case "Completed": return "bg-green-500"
+    default: return "bg-gray-400"
+  }
 }
-
-// --- Main Component ---
 
 export default function EmergencyResponsePage() {
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null)
   const [filterDisease, setFilterDisease] = useState<string | null>(null)
 
-  // Memoize the filtering logic for performance
   const filteredAlerts = useMemo(() => {
     let alerts = outbreakAlertsData
-    
-    // 1. Filter by selected hotspot name
-    if (selectedHotspot) {
-      alerts = alerts.filter(alert => alert.location === selectedHotspot.name)
-    }
-
-    // 2. Filter by disease
-    if (filterDisease) {
-        alerts = alerts.filter(alert => alert.disease === filterDisease)
-    }
-
+    if (selectedHotspot) alerts = alerts.filter(alert => alert.location === selectedHotspot.name)
+    if (filterDisease) alerts = alerts.filter(alert => alert.disease === filterDisease)
     return alerts
   }, [selectedHotspot, filterDisease])
 
-  // Get unique disease types for the filter badges
-  const uniqueDiseases = useMemo(() => {
-    const diseases = outbreakAlertsData.map(alert => alert.disease)
-    return Array.from(new Set(diseases))
-  }, [])
-  
-  // Use useCallback to prevent unnecessary re-renders in child components
+  const uniqueDiseases = useMemo(() => Array.from(new Set(outbreakAlertsData.map(a => a.disease))), [])
+
   const handleHotspotClick = useCallback((hotspot: Hotspot) => {
     setSelectedHotspot(prev => (prev && prev.id === hotspot.id ? null : hotspot))
   }, [])
@@ -130,14 +112,14 @@ export default function EmergencyResponsePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      
-      {/* Critical Alert Banner (Kept for instant visual feedback) */}
+
+      {/* Critical Alert Banner */}
       <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-r-lg shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-red-600" />
             <span className="text-red-800 font-medium">
-              ⚠ **IMMEDIATE ATTENTION:** 15 Dengue cases in Kochi Camp Alpha – resources need deployment.
+              ⚠ IMMEDIATE ATTENTION: 15 Dengue cases in Kochi Camp Alpha – resources need deployment.
             </span>
           </div>
           <Button variant="ghost" size="sm" className="text-red-600">
@@ -148,7 +130,7 @@ export default function EmergencyResponsePage() {
 
       <div className="grid grid-cols-12 gap-6">
 
-        {/* --- Outbreak Alerts Panel (Col 1-3) --- */}
+        {/* Outbreak Alerts Panel */}
         <div className="col-span-12 md:col-span-3">
           <Card className="h-full">
             <CardHeader className="pb-3">
@@ -159,36 +141,36 @@ export default function EmergencyResponsePage() {
                 </Button>
               </div>
               <div className="flex flex-wrap gap-2 mt-2">
-                {uniqueDiseases.map((disease) => (
-                    <Badge
-                        key={disease}
-                        variant={filterDisease === disease ? 'default' : 'outline'}
-                        className={`text-xs cursor-pointer transition-colors ${filterDisease === disease ? 'bg-blue-600 text-white hover:bg-blue-700' : 'hover:bg-gray-100'}`}
-                        onClick={() => handleDiseaseFilterClick(disease)}
-                    >
-                        {disease}
-                    </Badge>
+                {uniqueDiseases.map(disease => (
+                  <Badge
+                    key={disease}
+                    variant={filterDisease === disease ? 'default' : 'outline'}
+                    className={`text-xs cursor-pointer transition-colors ${filterDisease === disease ? 'bg-blue-600 text-white hover:bg-blue-700' : 'hover:bg-gray-100'}`}
+                    onClick={() => handleDiseaseFilterClick(disease)}
+                  >
+                    {disease}
+                  </Badge>
                 ))}
                 {filterDisease && (
-                    <Button variant="ghost" size="xs" onClick={() => setFilterDisease(null)} className="h-6 px-2 text-xs text-red-500 hover:bg-red-50">
-                        Clear <X className="h-3 w-3 ml-1" />
-                    </Button>
+                  <Button variant="ghost" size="sm" onClick={() => setFilterDisease(null)} className="h-6 px-2 text-xs text-red-500 hover:bg-red-50">
+                    Clear <X className="h-3 w-3 ml-1" />
+                  </Button>
                 )}
               </div>
               {selectedHotspot && (
-                 <div className="mt-2 flex items-center gap-2 p-2 bg-blue-50 border border-blue-200 rounded-md text-sm">
-                    <MapPin className="h-4 w-4 text-blue-600" />
-                    <span className="font-medium text-blue-800">Showing Alerts for **{selectedHotspot.name}**</span>
-                    <Button variant="ghost" size="icon" className="h-5 w-5 ml-auto text-blue-600 hover:bg-blue-100" onClick={() => setSelectedHotspot(null)}>
-                        <X className="h-3 w-3" />
-                    </Button>
+                <div className="mt-2 flex items-center gap-2 p-2 bg-blue-50 border border-blue-200 rounded-md text-sm">
+                  <MapPin className="h-4 w-4 text-blue-600" />
+                  <span className="font-medium text-blue-800">Showing Alerts for {selectedHotspot.name}</span>
+                  <Button variant="ghost" size="icon" className="h-5 w-5 ml-auto text-blue-600 hover:bg-blue-100" onClick={() => setSelectedHotspot(null)}>
+                    <X className="h-3 w-3" />
+                  </Button>
                 </div>
               )}
             </CardHeader>
 
             <CardContent className="space-y-3 max-h-[500px] overflow-y-auto">
               {filteredAlerts.length > 0 ? (
-                filteredAlerts.map((alert) => (
+                filteredAlerts.map(alert => (
                   <div key={alert.id} className="border rounded-lg p-3 shadow-sm transition-shadow hover:shadow-md">
                     <div className="flex items-center justify-between mb-2">
                       <Badge className={`text-xs uppercase font-semibold border ${getSeverityColorClasses(alert.severity)}`}>
@@ -211,7 +193,7 @@ export default function EmergencyResponsePage() {
           </Card>
         </div>
 
-        {/* --- Hotspot Map (Col 4-9) --- */}
+        {/* Hotspot Map */}
         <div className="col-span-12 md:col-span-6">
           <Card className="h-full">
             <CardHeader className="pb-3">
@@ -233,52 +215,37 @@ export default function EmergencyResponsePage() {
             </CardHeader>
             <CardContent>
               <div className="relative bg-blue-50 rounded-lg h-[600px] overflow-hidden">
-                {/* Visual Placeholder for Kerala Map */}
                 <svg viewBox="0 0 100 100" className="w-full h-full">
-                    <path
-                        d="M20 20 L80 20 L85 30 L80 40 L75 50 L70 60 L65 70 L60 75 L50 80 L40 82 L30 80 L25 75 L20 70 L18 60 L15 50 L18 40 L20 30 Z"
-                        fill="#e0f2fe"
-                        stroke="#0369a1"
-                        strokeWidth="0.5"
-                    />
+                  <path d="M20 20 L80 20 L85 30 L80 40 L75 50 L70 60 L65 70 L60 75 L50 80 L40 82 L30 80 L25 75 L20 70 L18 60 L15 50 L18 40 L20 30 Z" fill="#e0f2fe" stroke="#0369a1" strokeWidth="0.5"/>
                 </svg>
 
-                {/* Hotspot Markers using Popover for better UX */}
-                {hotspotsData.map((hotspot) => {
-                  const isSelected = selectedHotspot?.id === hotspot.id;
-                  
+                {hotspotsData.map(hotspot => {
+                  const isSelected = selectedHotspot?.id === hotspot.id
                   return (
-                    <Popover key={hotspot.id} open={isSelected} onOpenChange={(open) => {
-                        if (open) handleHotspotClick(hotspot)
-                        else setSelectedHotspot(null)
-                    }}>
-                      <PopoverTrigger 
-                        asChild
-                        style={{ left: `${hotspot.x}%`, top: `${hotspot.y}%` }}
-                        className={`absolute w-4 h-4 rounded-full cursor-pointer transform -translate-x-2 -translate-y-2 ring-2 ${
-                            hotspot.risk === "high" ? "bg-red-500 ring-red-300" 
-                            : hotspot.risk === "medium" ? "bg-yellow-500 ring-yellow-300" 
-                            : "bg-green-500 ring-green-300"
-                        } transition-all duration-300 ${isSelected ? 'scale-150 ring-4' : 'hover:scale-125'}`}
-                      />
+                    <Popover key={hotspot.id} open={isSelected} onOpenChange={open => open ? handleHotspotClick(hotspot) : setSelectedHotspot(null)}>
+                      <PopoverTrigger asChild>
+                        <div
+                          className={`absolute w-4 h-4 rounded-full cursor-pointer transform -translate-x-2 -translate-y-2 ring-2 ${
+                            hotspot.risk === "high" ? "bg-red-500 ring-red-300" :
+                            hotspot.risk === "medium" ? "bg-yellow-500 ring-yellow-300" :
+                            "bg-green-500 ring-green-300"
+                          } transition-all duration-300 ${isSelected ? 'scale-150 ring-4' : 'hover:scale-125'}`}
+                          style={{ left: `${hotspot.x}%`, top: `${hotspot.y}%` }}
+                        />
+                      </PopoverTrigger>
                       <PopoverContent className="w-64">
-                          <div className="flex items-center justify-between mb-2">
-                              <h4 className="font-bold text-lg text-gray-900">{hotspot.name}</h4>
-                              <Zap className={`h-5 w-5 ${hotspot.risk === 'high' ? 'text-red-500' : 'text-yellow-500'}`} />
-                          </div>
-                          <p className="text-sm text-gray-700">Total Cases: <span className="font-semibold">{hotspot.cases}</span></p>
-                          <p className="text-sm text-gray-700">Response Team: <span className="font-semibold">{hotspot.workers} Workers</span></p>
-                          <Badge className={`mt-2 text-xs uppercase font-bold ${getSeverityColorClasses(hotspot.risk)}`}>
-                            {hotspot.risk} Risk Zone
-                          </Badge>
-                          <Button 
-                            variant="default" 
-                            size="sm" 
-                            className="mt-3 w-full bg-blue-600 hover:bg-blue-700" 
-                            onClick={() => handleHotspotClick(hotspot)}
-                          >
-                            View Alerts
-                          </Button>
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-bold text-lg text-gray-900">{hotspot.name}</h4>
+                          <Zap className={`h-5 w-5 ${hotspot.risk === 'high' ? 'text-red-500' : 'text-yellow-500'}`} />
+                        </div>
+                        <p className="text-sm text-gray-700">Total Cases: <span className="font-semibold">{hotspot.cases}</span></p>
+                        <p className="text-sm text-gray-700">Response Team: <span className="font-semibold">{hotspot.workers} Workers</span></p>
+                        <Badge className={`mt-2 text-xs uppercase font-bold ${getSeverityColorClasses(hotspot.risk)}`}>
+                          {hotspot.risk} Risk Zone
+                        </Badge>
+                        <Button variant="default" size="sm" className="mt-3 w-full bg-blue-600 hover:bg-blue-700" onClick={() => handleHotspotClick(hotspot)}>
+                          View Alerts
+                        </Button>
                       </PopoverContent>
                     </Popover>
                   )
@@ -288,7 +255,7 @@ export default function EmergencyResponsePage() {
           </Card>
         </div>
 
-        {/* --- Action Log Timeline (Col 10-12) --- */}
+        {/* Action Log Timeline */}
         <div className="col-span-12 md:col-span-3">
           <Card className="h-full">
             <CardHeader>
@@ -300,21 +267,13 @@ export default function EmergencyResponsePage() {
               {actionLogData.map((action, index) => (
                 <div key={action.id} className="flex gap-3">
                   <div className="flex flex-col items-center pt-1">
-                    <div
-                      className={`w-3 h-3 rounded-full shrink-0 ${getStatusColorClasses(action.status)} shadow-md`}
-                    />
-                    {/* The timeline connecting line */}
+                    <div className={`w-3 h-3 rounded-full shrink-0 ${getStatusColorClasses(action.status)} shadow-md`} />
                     {index < actionLogData.length - 1 && <div className="w-px h-10 bg-gray-200 mt-1" />}
                   </div>
                   <div className="flex-1 -mt-1">
                     <p className="text-sm font-semibold text-gray-900">{action.action}</p>
-                    <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
-                      {action.date}
-                    </p>
-                    <Badge
-                      variant={action.status === "Completed" ? "default" : "secondary"}
-                      className={`text-xs mt-1 ${action.status === "Completed" ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600 text-white'}`}
-                    >
+                    <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">{action.date}</p>
+                    <Badge variant={action.status === "Completed" ? "default" : "secondary"} className={`text-xs mt-1 ${action.status === "Completed" ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600 text-white'}`}>
                       {action.status}
                     </Badge>
                   </div>
@@ -323,9 +282,10 @@ export default function EmergencyResponsePage() {
             </CardContent>
           </Card>
         </div>
+
       </div>
 
-      {/* --- Emergency Resources Panel (Full Width) --- */}
+      {/* Emergency Resources Panel */}
       <div className="mt-6">
         <Card>
           <CardHeader>
@@ -335,10 +295,10 @@ export default function EmergencyResponsePage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-              {emergencyResourcesData.map((resource) => {
-                const Icon = resource.icon; // Get the Lucide icon component
-                const colorClass = resource.status === "good" ? "text-green-600" : resource.status === "medium" ? "text-yellow-600" : "text-red-600";
-                const bgClass = resource.status === "good" ? "bg-green-100" : resource.status === "medium" ? "bg-yellow-100" : "bg-red-100";
+              {emergencyResourcesData.map(resource => {
+                const Icon = resource.icon
+                const colorClass = resource.status === "good" ? "text-green-600" : resource.status === "medium" ? "text-yellow-600" : "text-red-600"
+                const bgClass = resource.status === "good" ? "bg-green-100" : resource.status === "medium" ? "bg-yellow-100" : "bg-red-100"
 
                 return (
                   <div key={resource.name} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
@@ -364,6 +324,7 @@ export default function EmergencyResponsePage() {
           </CardContent>
         </Card>
       </div>
+
     </div>
   )
 }

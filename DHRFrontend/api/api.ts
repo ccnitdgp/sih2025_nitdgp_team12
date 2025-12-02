@@ -1,7 +1,7 @@
 import axios, { AxiosInstance } from "axios";
 
 // Use your backend port here
-const BASE_URL = "http://localhost:5000";
+const BASE_URL =  process.env.NEXT_PUBLIC_BACKEND_URL;
 
 class ApiService {
   private api: AxiosInstance;

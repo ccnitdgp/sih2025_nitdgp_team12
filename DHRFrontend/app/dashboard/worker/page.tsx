@@ -3,7 +3,10 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/app-sidebar"
+import { DynamicHeader } from "@/components/dynamic-header"
+import { useIsMobile } from "@/hooks/use-mobile"
 import {
   Stethoscope,
   Calendar,
@@ -28,25 +31,24 @@ import { useRouter } from "next/navigation"
 
 export default function WorkerDashboard() {
   const router = useRouter()
+  const isMobile = useIsMobile()
 
   const handleLogout = () => {
     router.push("/")
   }
 
   return (
-    <SidebarInset>
-      <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-        <SidebarTrigger className="-ml-1" />
-        <div className="flex items-center gap-2 flex-1">
-          <h1 className="text-lg font-semibold">Worker Health Dashboard</h1>
-        </div>
-        <Button variant="outline" size="sm" onClick={handleLogout} className="ml-auto bg-transparent">
-          <LogOut className="h-4 w-4 mr-1" />
-          Logout
-        </Button>
-      </header>
+    <SidebarProvider defaultOpen={true}>
+      <AppSidebar />
+      <SidebarInset>
+        <DynamicHeader leftChildren={isMobile ? <SidebarTrigger className="-ml-1" /> : null}>
+          <Button variant="outline" size="sm" onClick={handleLogout} className="bg-transparent">
+            <LogOut className="h-4 w-4 mr-1" />
+            Logout
+          </Button>
+        </DynamicHeader>
 
-      <div className="p-4 space-y-8">
+        <div className="p-4 space-y-8">
         {/* Profile Header */}
         <Card className="bg-gradient-to-r from-purple-500 to-blue-600 text-white border-0 shadow-xl">
           <CardContent className="p-8">
@@ -298,7 +300,8 @@ export default function WorkerDashboard() {
             </Card>
           </div>
         </div>
-      </div>
-    </SidebarInset>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }

@@ -8,26 +8,34 @@ import { Switch } from "@/components/ui/switch"
 import { Bell, Pill, CheckCircle, Clock, AlertTriangle } from "lucide-react"
 
 export default function MedicinesPage() {
-  const [medicineToggles, setMedicineToggles] = useState({
-    metformin: {
-      morning: true,
-      afternoon: false,
-      evening: false,
-    },
-    lisinopril: {
-      morning: false,
-      evening: true,
-    },
+  const [schedule, setSchedule] = useState<{
+    [key: string]: {
+      morning: boolean
+      afternoon: boolean
+      evening: boolean
+    }
+  }>({
+    metformin: { morning: true, afternoon: false, evening: true },
+    lisinopril: { morning: true, afternoon: false, evening: false }
   })
 
-  const toggleMedicine = (medicine: string, time: string) => {
-    setMedicineToggles((prev) => ({
+  const toggleTime = (medicine: string, time: string) => {
+    setSchedule(prev => ({
       ...prev,
       [medicine]: {
-        ...prev[medicine as keyof typeof prev],
-        [time]: !prev[medicine as keyof typeof prev][time as keyof typeof prev],
-      },
+        ...prev[medicine],
+        [time]: !prev[medicine][time as keyof typeof prev[typeof medicine]]
+      }
     }))
+    setSchedule((prev) => {
+      const currentMedicineSchedule = prev[medicine]
+      const updatedMedicineSchedule = {
+        ...currentMedicineSchedule,
+        // The key 'time' is now safely applied to a specific schedule object
+        [time]: !currentMedicineSchedule[time as keyof typeof currentMedicineSchedule],
+      };
+      return { ...prev, [medicine]: updatedMedicineSchedule }
+    })
   }
 
   return (
@@ -141,8 +149,8 @@ export default function MedicinesPage() {
                       <p className="text-sm text-gray-600">8:00 AM</p>
                     </div>
                     <Switch
-                      checked={medicineToggles.metformin.morning}
-                      onCheckedChange={() => toggleMedicine("metformin", "morning")}
+                      checked={schedule.metformin.morning}
+                      onCheckedChange={() => toggleTime("metformin", "morning")}
                     />
                   </div>
 
@@ -152,8 +160,8 @@ export default function MedicinesPage() {
                       <p className="text-sm text-gray-600">2:00 PM</p>
                     </div>
                     <Switch
-                      checked={medicineToggles.metformin.afternoon}
-                      onCheckedChange={() => toggleMedicine("metformin", "afternoon")}
+                      checked={schedule.metformin.afternoon}
+                      onCheckedChange={() => toggleTime("metformin", "afternoon")}
                     />
                   </div>
 
@@ -163,8 +171,8 @@ export default function MedicinesPage() {
                       <p className="text-sm text-gray-600">8:00 PM</p>
                     </div>
                     <Switch
-                      checked={medicineToggles.metformin.evening}
-                      onCheckedChange={() => toggleMedicine("metformin", "evening")}
+                      checked={schedule.metformin.evening}
+                      onCheckedChange={() => toggleTime("metformin", "evening")}
                     />
                   </div>
                 </div>
@@ -195,8 +203,8 @@ export default function MedicinesPage() {
                       <p className="text-sm text-gray-600">9:00 AM</p>
                     </div>
                     <Switch
-                      checked={medicineToggles.lisinopril.morning}
-                      onCheckedChange={() => toggleMedicine("lisinopril", "morning")}
+                      checked={schedule.lisinopril.morning}
+                      onCheckedChange={() => toggleTime("lisinopril", "morning")}
                     />
                   </div>
 
@@ -206,8 +214,8 @@ export default function MedicinesPage() {
                       <p className="text-sm text-gray-600">9:00 PM</p>
                     </div>
                     <Switch
-                      checked={medicineToggles.lisinopril.evening}
-                      onCheckedChange={() => toggleMedicine("lisinopril", "evening")}
+                      checked={schedule.lisinopril.evening}
+                      onCheckedChange={() => toggleTime("lisinopril", "evening")}
                     />
                   </div>
                 </div>
