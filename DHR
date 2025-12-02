@@ -1,0 +1,200 @@
+"use client";
+
+import React, { useEffect, useRef, useState } from "react";
+import { Slider } from "@/components/ui/slider";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Type declarations for Google Maps
+declare global {
+  interface Window {
+    google: typeof google;
+    initMapHigh: () => void;
+  }
+}
+
+declare namespace google {
+  namespace maps {
+    class Map {
+      constructor(mapDiv: HTMLElement, opts?: any);
+    }
+    class LatLng {
+      constructor(lat: number, lng: number);
+    }
+    class InfoWindow {
+      constructor(opts?: any);
+      setContent(content: string): void;
+      setPosition(position: any): void;
+      open(map?: any): void;
+    }
+    class Circle {
+      constructor(opts?: any);
+      addListener(event: string, handler: () => void): void;
+    }
+    namespace visualization {
+      class HeatmapLayer {
+        constructor(opts?: any);
+        set(property: string, value: any): void;
+      }
+    }
+  }
+}
+
+// Props so you can use backend data in future
+interface MapDataPoint {
+  lat: number;
+  lng: number;
+  district: string;
+  block: string;
+  intensity: number;
+}
+
+interface HeatmapProps {
+  data: MapDataPoint[];
+  apiKey: string;
+}
+
+export const KeralaHeatmapEnhanced = ({ data, apiKey }: HeatmapProps) => {
+  const mapRef = useRef<HTMLDivElement | null>(null);
+  const heatmapRef = useRef<any>(null);
+  const mapObject = useRef<any>(null);
+
+  const [scriptLoaded, setScriptLoaded] = useState(false);
+  const [radius, setRadius] = useState(30);
+
+  // Load Google Maps Script
+  useEffect(() => {
+    if (scriptLoaded || !mapRef.current) return;
+
+    (window as any).initMapHigh = () => {
+      setScriptLoaded(true);
+      if (mapRef.current) initializeMap();
+    };
+
+    const script = document.createElement("script");
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=visualization&callback=initMapHigh`;
+    script.async = true;
+    document.head.appendChild(script);
+
+    return () => {
+      document.head
+        .querySelectorAll(`script[src*="maps.googleapis.com"]`)
+        .forEach((el) => el.remove());
+    };
+  }, [scriptLoaded]);
+
+  // Initialize Map + Heatmap
+  const initializeMap = () => {
+    if (!window.google) return;
+
+    mapObject.current = new google.maps.Map(mapRef.current!, {
+      zoom: 7,
+      center: { lat: 10.8505, lng: 76.2711 },
+      disableDefaultUI: true,
+      gestureHandling: "greedy",
+      styles: [
+        { elementType: "geometry", stylers: [{ color: "#1d1d1d" }] },
+        { elementType: "labels.text.fill", stylers: [{ color: "#bdbdbd" }] },
+        { featureType: "road", stylers: [{ visibility: "off" }] },
+      ],
+    });
+
+    // heatmap points
+    const heatPoints = data.map((p) => ({
+      location: new google.maps.LatLng(p.lat, p.lng),
+      weight: p.intensity,
+    }));
+
+    heatmapRef.current = new google.maps.visualization.HeatmapLayer({
+      data: heatPoints,
+      map: mapObject.current,
+      radius,
+      opacity: 0.8,
+      gradient: [
+        "rgba(0,0,0,0)",
+        "rgba(0, 150, 255, 1)",
+        "rgba(0, 255, 150, 1)",
+        "rgba(255, 255, 0, 1)",
+        "rgba(255, 150, 0, 1)",
+        "rgba(255, 0, 0, 1)",
+      ],
+    });
+
+    // Hover Tooltip
+    const info = new google.maps.InfoWindow();
+    data.forEach((p) => {
+      const marker = new google.maps.Circle({
+        map: mapObject.current,
+        center: { lat: p.lat, lng: p.lng },
+        radius: 3000,
+        strokeOpacity: 0,
+        fillOpacity: 0,
+        clickable: true,
+      });
+
+      marker.addListener("mouseover", () => {
+        info.setContent(
+          `<div style="padding:5px;color:black">
+            <b>${p.district}</b><br/>
+            Block: ${p.block}<br/>
+            Index: ${p.intensity}
+          </div>`
+        );
+        info.setPosition({ lat: p.lat, lng: p.lng });
+        info.open(mapObject.current);
+      });
+    });
+  };
+
+  // Update heatmap radius when slider moves
+  useEffect(() => {
+    if (heatmapRef.current) {
+      heatmapRef.current.set("radius", radius);
+    }
+  }, [radius]);
+
+  return (
+    <div className="space-y-4">
+      <div className="text-sm font-semibold text-gray-700">
+        Heatmap Sensitivity
+      </div>
+
+      <Slider
+        defaultValue={[30]}
+        max={60}
+        min={10}
+        onValueChange={(v) => setRadius(v[0])}
+      />
+
+      <div className="h-[500px] relative rounded-xl overflow-hidden border border-gray-200">
+        {!scriptLoaded && (
+          <Skeleton className="absolute inset-0 flex items-center justify-center text-gray-500">
+            Loading Interactive Heatmap...
+          </Skeleton>
+        )}
+        <div ref={mapRef} className="absolute inset-0" />
+      </div>
+    </div>
+  );
+};
+
+// Default export component that can be used without props
+const KeralaHeatmap = () => {
+  // Mock data for demonstration - replace with real data from backend
+  const defaultData: MapDataPoint[] = [
+    { lat: 9.9312, lng: 76.2673, district: "Ernakulam", block: "Kochi", intensity: 85 },
+    { lat: 8.5241, lng: 76.9366, district: "Thiruvananthapuram", block: "Thiruvananthapuram", intensity: 92 },
+    { lat: 11.2588, lng: 75.7804, district: "Kozhikode", block: "Kozhikode", intensity: 78 },
+    { lat: 10.5276, lng: 76.2144, district: "Thrissur", block: "Thrissur", intensity: 71 },
+    { lat: 9.3731, lng: 76.5224, district: "Alappuzha", block: "Alappuzha", intensity: 65 },
+    { lat: 11.8745, lng: 75.3704, district: "Kannur", block: "Kannur", intensity: 58 },
+    { lat: 8.5100, lng: 76.8724, district: "Kollam", block: "Kollam", intensity: 62 },
+    { lat: 9.7719, lng: 76.6417, district: "Kottayam", block: "Kottayam", intensity: 55 },
+  ];
+
+  // You would typically get this from environment variables
+  const defaultApiKey = "YOUR_GOOGLE_MAPS_API_KEY"; // Replace with actual API key
+
+  return <KeralaHeatmapEnhanced data={defaultData} apiKey={defaultApiKey} />;
+};
+
+export default KeralaHeatmap;
