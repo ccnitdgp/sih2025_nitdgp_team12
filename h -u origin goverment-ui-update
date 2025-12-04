@@ -1,0 +1,23 @@
+[33maf9cfbe[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mgoverment-ui-update[m[33m)[m Resolved merge conflict in dashboard-data.ts
+[33md52b61b[m[33m ([m[1;32mmain[m[33m)[m Updated dashboard UI, added Kerala map, controls, pages cleanup, and new worker features
+[33maccf5a7[m[33m ([m[1;31mupstream/main[m[33m)[m fixed use state error
+[33m9c69d6c[m[33m ([m[1;31morigin/goverment-ui-update[m[33m)[m Save my changes before switching branch
+[33m0558b0b[m fixed build errors in gov dashboard
+[33m65ad8ac[m govt page change digital survilence
+[33m201ad67[m Merge branch 'main' into main
+[33m1c74a78[m fixed build error
+[33m8995bb0[m fixed frnotend
+[33mdc939fe[m govt page changev2
+[33m67efc87[m govt page change
+[33m994d321[m fixed next js file & added logout layout button in gov
+[33ma004d26[m added small logout button in gov layout
+[33mc7c1923[m translation api bug solved
+[33m60e7fe8[m translation api bug solved
+[33mb15eb2a[m Conclude merge and add local changes
+[33m549219b[m Added new feature talk-in voice v2
+[33m86693d1[m Merge pull request #2 from BinodSY/prasad
+[33mc3a9bbd[m[33m ([m[1;31mupstream/prasad[m[33m)[m Added new feature talk
+[33made13cd[m Merge pull request #1 from tenacious7/goverment-ui-update
+[33m87f6da5[m Updated government UI with latest changes
+[33m658ccf4[m Initial commit
+[33mf5d8f0a[m initial commit
