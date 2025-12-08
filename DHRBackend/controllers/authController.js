@@ -1,10 +1,19 @@
 import  authModel  from "../models/authModel.js";
-
+import { generateToken } from "../config/authUtils.js";
 import supabase from "../services/supabaseClient.js";
 
+import crypto from "crypto";
+import { sendSms } from "../services/snsClient.js";
 
 
 const otpStore = {};
+
+function generateOtp() {
+  return Math.floor(100000 + Math.random() * 900000).toString(); // 6 digits
+}
+function hashOtp(otp) {
+  return crypto.createHash("sha256").update(String(otp)).digest("hex");
+}
 export const registerUser = async (req, res) => {
     try {
         const { email, password, name } = req.body;
@@ -43,63 +52,126 @@ export const loginUser = async (req, res) => {
 //otp send /api/auth/send-otp
 export const otpSend = async (req, res) => {
     try {
-        const {phone} = req.body;
-
-        const verifyPhone=await authModel.verifyPhone(supabase,phone);
-        if(!verifyPhone){
-            return res.status(401).json({error:"Phone number not registered,please regeister first"});
-        }
-         const otp = Math.floor(100000 + Math.random() * 900000);
-         otpStore[phone]={
-            otp:otp,
-            expiresAt: Date.now() + 5 * 60 * 1000 
-         }
-         console.log(otpStore);
-         res.json({
-            success: true,
-            message: "OTP sent successfully"
-         });
-         console.log("Demo OTP for", phone, ":", otp);
-    }catch (error) {
-        console.error("OTP Send error:", error);
-        res.status(500).json({
-            error: "Internal server error",
-            details: error.message
-        });
+    const { phone } = req.body;
+    if (!phone || typeof phone !== "string" || !phone.startsWith("+")) {
+      return res.status(400).json({ error: "Phone required in E.164 format (e.g. +919876543210)" });
     }
+
+    // TODO: optional: check phone exists in your DB
+    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digits
+    const otpHash = crypto.createHash("sha256").update(String(otp)).digest("hex");
+    const ttlMs = 5 * 60 * 1000; // 5 minutes
+
+    otpStore[phone] = {
+      otpHash,
+      expiresAt: Date.now() + ttlMs,
+      attempts: 0
+    };
+
+    const message = `Your verification code is: ${otp}. It will expire in 5 minutes.`;
+
+    try {
+      const resp = await sendSms(phone, message);
+      console.log("SNS MessageId:", resp.MessageId);
+    } catch (snsErr) {
+      console.error("SNS error:", snsErr);
+      delete otpStore[phone]; // cleanup
+      return res.status(500).json({ error: "Failed to send SMS" });
+    }
+
+    // NOTE: In dev you might want to return the otp for quick testing:
+    // return res.json({ success: true, otp }); // debug only
+    return res.json({ success: true, message: "OTP sent" });
+  } catch (err) {
+    console.error("send-otp error:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
 }
+
+// //otp verify
+// export const otpVerify = async (req, res) => {
+//     try {
+//         const {phone, otp} = req.body;
+//         const record = otpStore[phone];
+//         if(!record){
+//             return res.status(400).json({error:"No OTP sent to this phone number"});
+//         }
+          
+
+//         if (Date.now() > record.expiresAt){
+//             delete otpStore[phone];
+//             console.log(otpStore)
+//             return res.status(400).json({ error: "OTP expired" });
+//         }
+
+//         if (parseInt(otp.trim()) !== record.otp){
+//             console.log(record.otp, otp);
+//             return res.status(400).json({ error: "Incorrect OTP" });
+//         }
+//          // Fetch user info from DB
+//         // const user = await authModel.getUserByPhone(supabase, phone);
+//         // if (!user) {
+//         //     return res.status(404).json({ error: "User not found in database" });
+//         // }
+
+
+//         // Payload for JWT token
+//         const payload = {
+//             id: user.id,
+//             phone: user.phone,
+//             role: "worker",
+//         };
+
+//         // Generate real JWT
+//         const token = generateToken(payload);
+
+//         return res.json({
+//             success: true,
+//             message: "OTP verified successfully",
+//             token,
+//             user: payload
+//         });
+//         } catch (error) {
+//         console.error("OTP Verify error:", error);
+//         res.status(500).json({
+//             error: "Internal server error",
+//             details: error.message
+//         });
+//     }
+// }
+
 
 //otp verify
 export const otpVerify = async (req, res) => {
     try {
-        const {phone, otp} = req.body;
-        const record = otpStore[phone];
-        if(!record){
-            return res.status(400).json({error:"No OTP sent to this phone number"});
-        }
-          
+    const { phone, otp } = req.body;
+    if (!phone || !otp) return res.status(400).json({ error: "phone and otp required" });
 
-        if (Date.now() > record.expiresAt){
-            delete otpStore[phone];
-            console.log(otpStore)
-            return res.status(400).json({ error: "OTP expired" });
-        }
+    const rec = otpStore[phone];
+    if (!rec) return res.status(400).json({ error: "No OTP requested for this phone" });
 
-        if (parseInt(otp.trim()) !== record.otp){
-            console.log(record.otp, otp);
-            return res.status(400).json({ error: "Incorrect OTP" });
-        }
-        delete otpStore[phone];
-
-            res.json({
-            success: true,
-            token: "mock-jwt-token-here"
-            });
-        } catch (error) {
-        console.error("OTP Verify error:", error);
-        res.status(500).json({
-            error: "Internal server error",
-            details: error.message
-        });
+    if (Date.now() > rec.expiresAt) {
+      delete otpStore[phone];
+      return res.status(400).json({ error: "OTP expired" });
     }
+
+    rec.attempts = (rec.attempts || 0) + 1;
+    if (rec.attempts > 5) {
+      delete otpStore[phone];
+      return res.status(403).json({ error: "Too many attempts" });
+    }
+
+    const providedHash = hashOtp(String(otp).trim());
+    if (providedHash !== rec.otpHash) {
+      return res.status(400).json({ error: "Incorrect OTP" });
+    }
+
+    // success: clear store and respond
+    delete otpStore[phone];
+    // TODO: create session/JWT as needed
+    return res.json({ success: true, message: "Phone verified" });
+  } catch (err) {
+    console.error("verify-otp error:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
 }

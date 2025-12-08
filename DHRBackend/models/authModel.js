@@ -33,6 +33,16 @@ export const authModel={
         .maybeSingle();
         if(error) throw error;
         return data;
+    },
+
+    async getUserByPhone(supabase, phone) {
+        const { data, error } = await supabase
+            .from('patients')
+            .select('*')
+            .eq('phone', phone)
+            .maybeSingle();
+        if (error) throw error;
+        return data;
     }
 
 
