@@ -72,7 +72,7 @@ export default function DiseaseSurveillanceDashboard() {
       y: 0,
       opacity: 1,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         stiffness: 100,
         damping: 12
       }
@@ -85,7 +85,7 @@ export default function DiseaseSurveillanceDashboard() {
       scale: 1,
       opacity: 1,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         stiffness: 200,
         damping: 15
       }
@@ -94,12 +94,12 @@ export default function DiseaseSurveillanceDashboard() {
       scale: 1.02,
       y: -8,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         stiffness: 300,
         damping: 15
       }
     }
-  }
+  } as const
 
   const tableRowVariants = {
     hidden: { opacity: 0, x: -20 },

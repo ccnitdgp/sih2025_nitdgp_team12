@@ -254,7 +254,7 @@ export default function VoiceTalkPage() {
   const makeAPICall = async (body: object, maxRetries = 3) => {
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
-        const response = await fetch("/api/translate", {
+        const response = await fetch("http://localhost:5000/api/translate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
