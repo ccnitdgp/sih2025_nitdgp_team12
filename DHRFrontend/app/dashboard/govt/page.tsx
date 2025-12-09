@@ -162,7 +162,7 @@ export default function SehatSetuDashboard() {
               { icon: <Users size={24} />, label: "Total Migrants", value: 11+577, color: "from-blue-500 to-blue-400", badge: "+12.5%", badgeColor: "bg-emerald-500" },
               { icon: <MapPin size={24} />, label: "Origin States", value: 14, color: "from-purple-500 to-purple-400", badge: "14 States", badgeColor: "bg-purple-500" },
               { icon: <AlertTriangle size={24} />, label: "High Risk States", value: 3, color: "from-red-500 to-red-400", badge: "Action Req.", badgeColor: "bg-red-500" },
-              // REMOVED 'Active Camps' card here
+              // REMOVED 'Active Camps' card here//
             ].map((card, index) => (
               <motion.div
                 key={index}
