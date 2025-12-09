@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   title: "Health Dashboard",
   description: "Government Digital Health Portal",
   generator: "v0.app",
+  icons: {
+    icon: "https://5vpwugr172.ucarecd.net/b46d906e-fe6c-4eca-b9ef-75c1095be2f8/sehatsetulogo.png",
+  },
 }
 
 export default function RootLayout({

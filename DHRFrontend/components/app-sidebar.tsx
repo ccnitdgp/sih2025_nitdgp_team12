@@ -22,7 +22,7 @@ const menuItems = [
   { icon: CreditCard, label: "Health ID", href: "/dashboard/worker/health-id" },
   { icon: Syringe, label: "Vaccinations", href: "/dashboard/worker/vaccinations", badge: "4", badgeColor: "bg-green-500" },
   { icon: Pill, label: "Medicines", href: "/dashboard/worker/medicines", badge: "2", badgeColor: "bg-green-500" },
-  { icon: AlertTriangle, label: "Disease Alerts", href: "/alerts", badge: "1", badgeColor: "bg-red-500" },
+  // { icon: AlertTriangle, label: "Disease Alerts", href: "/alerts", badge: "1", badgeColor: "bg-red-500" },
   { icon: Wallet, label: "Rewards", href: "/dashboard/worker/rewards", badge: "850", badgeColor: "text-gray-600" },
   { icon: Building2, label: "Gov Benefits", href: "/dashboard/worker/benefits" },
   { icon: Mic, label: "Voice Talk", href: "/dashboard/worker/voice-talk" },

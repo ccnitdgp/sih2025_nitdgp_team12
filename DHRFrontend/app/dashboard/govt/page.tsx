@@ -43,14 +43,14 @@ export default function SehatSetuDashboard() {
   const stats = [
     { 
       label: "Total Workers", 
-      val: "2.8M", 
+      val: "11,573", 
       icon: <FaUsers size={24} />, 
       color: "bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600",
       change: "+12.5%"
     },
     { 
       label: "High-Risk Zones", 
-      val: "487K", 
+      val: "3", 
       icon: <FaExclamationTriangle size={24} />, 
       color: "bg-gradient-to-br from-red-50 to-red-100 text-red-600",
       change: "+8.2%"
@@ -159,7 +159,7 @@ export default function SehatSetuDashboard() {
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5" 
           >
             {[
-              { icon: <Users size={24} />, label: "Total Migrants", value: 48247, color: "from-blue-500 to-blue-400", badge: "+12.5%", badgeColor: "bg-emerald-500" },
+              { icon: <Users size={24} />, label: "Total Migrants", value: 11+577, color: "from-blue-500 to-blue-400", badge: "+12.5%", badgeColor: "bg-emerald-500" },
               { icon: <MapPin size={24} />, label: "Origin States", value: 14, color: "from-purple-500 to-purple-400", badge: "14 States", badgeColor: "bg-purple-500" },
               { icon: <AlertTriangle size={24} />, label: "High Risk States", value: 3, color: "from-red-500 to-red-400", badge: "Action Req.", badgeColor: "bg-red-500" },
               // REMOVED 'Active Camps' card here

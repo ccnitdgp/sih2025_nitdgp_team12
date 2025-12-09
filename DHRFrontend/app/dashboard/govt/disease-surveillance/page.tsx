@@ -9,10 +9,31 @@ export default function DiseaseSurveillanceDashboard() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [selectedDistrict, setSelectedDistrict] = useState<any>(null)
   const [activeTab, setActiveTab] = useState("overview")
-  
-  useEffect(() => {
-    setIsLoaded(true)
-  }, [])
+  const [diseaseData, setDiseaseData] = useState<any[] | null>(null);
+useEffect(() => {
+
+  type DashboardItem = {
+    District: string;
+    "Workers Monitored": number | string;
+    "Top Disease Name": string;
+    "Top Disease %": number | string;
+  };
+
+  const fetchData = async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:8000/dashboard");
+      const json = await res.json();
+
+      // Keep backend fields exactly as they are
+      setDiseaseData(json.data);
+    } catch (err) {
+      console.error("Error fetching dashboard data:", err);
+    }
+  };
+
+  fetchData();
+}, []);
+
 
   // React Spring animations
   const fadeIn = useSpring({
@@ -115,304 +136,7 @@ export default function DiseaseSurveillanceDashboard() {
 
   return (
     <animated.div style={fadeIn} className="space-y-6 p-4 sm:p-6">
-      {/* Header */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2"
-      >
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-slate-900 to-blue-700 bg-clip-text text-transparent">
-            Disease Surveillance Dashboard
-          </h1>
-          <p className="text-slate-600 text-sm mt-1">Real-time monitoring & predictive analytics across districts</p>
-        </div>
-        <motion.div 
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 shadow-sm"
-        >
-          <span>Last updated: Just now</span>
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-        </motion.div>
-      </motion.div>
 
-      {/* Stats Cards Grid */}
-      <motion.div 
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-      >
-        {stats.map((stat, idx) => (
-          <motion.div
-            key={idx}
-            variants={itemVariants}
-            custom={idx}
-            whileHover="hover"
-            className="relative group"
-          >
-            <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
-              {/* Gradient overlay on hover */}
-              <div className="absolute inset-0 bg-gradient-to-br from-transparent to-blue-50 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              
-              <div className="relative z-10">
-                <div className="flex justify-between items-start mb-4">
-                  <div className={`p-2.5 rounded-lg ${
-                    stat.badge === 'Live' ? 'bg-gradient-to-br from-green-50 to-emerald-50 text-green-600' :
-                    stat.badge === 'Active' ? 'bg-gradient-to-br from-blue-50 to-cyan-50 text-blue-600' :
-                    stat.badge === 'AI' ? 'bg-gradient-to-br from-purple-50 to-violet-50 text-purple-600' :
-                    'bg-gradient-to-br from-orange-50 to-amber-50 text-orange-600'
-                  }`}>
-                    <stat.icon className="h-5 w-5" />
-                  </div>
-                  <motion.span 
-                    className={`text-xs font-bold px-2.5 py-1 rounded-full ${stat.badgeColor} flex items-center gap-1`}
-                    animate={{ scale: [1, 1.1, 1] }}
-                    transition={{ 
-                      duration: 2, 
-                      repeat: Infinity,
-                      repeatType: "reverse",
-                      delay: idx * 0.3
-                    }}
-                  >
-                    {stat.badge}
-                    {stat.badge === "Live" && (
-                      <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                      </span>
-                    )}
-                  </motion.span>
-                </div>
-                
-                <div className="space-y-1">
-                  <motion.h3 
-                    className="text-2xl sm:text-3xl font-bold text-slate-900"
-                    initial={{ scale: 0.8 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.5 + idx * 0.1 }}
-                  >
-                    {stat.value}
-                  </motion.h3>
-                  <p className="text-sm font-medium text-slate-500">{stat.label}</p>
-                </div>
-
-                <div className="mt-4 flex items-center gap-2">
-                  <span className={`text-xs font-semibold px-2 py-1 rounded-lg flex items-center gap-1 ${
-                    stat.trend === 'up' ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'
-                  }`}>
-                    {stat.trend === 'up' ? (
-                      <ArrowUp className="h-3 w-3" />
-                    ) : (
-                      <ArrowDown className="h-3 w-3" />
-                    )}
-                    {stat.change}
-                  </span>
-                  <span className="text-xs text-slate-400">vs last month</span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        ))}
-      </motion.div>
-
-      {/* Alerts & Risk Trend Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Alerts Section */}
-        <motion.div 
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4 }}
-          className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"
-        >
-          <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-gradient-to-r from-slate-50 to-white">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-red-500 animate-pulse" />
-              <h3 className="font-semibold text-slate-900">Active Alerts</h3>
-            </div>
-            <motion.button 
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium hover:underline flex items-center gap-1"
-            >
-              View All <ChevronRight className="h-3 w-3" />
-            </motion.button>
-          </div>
-          
-          <div className="p-6 space-y-4">
-            {alerts.map((alert, idx) => (
-              <motion.div
-                key={alert.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 + idx * 0.1 }}
-                whileHover={{ x: 4 }}
-                className={`p-4 rounded-lg border-l-4 ${alert.bgColor} ${alert.borderColor} flex items-start gap-4 transition-all duration-200 cursor-pointer`}
-              >
-                <alert.icon className={`h-5 w-5 mt-0.5 ${alert.iconColor}`} />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="text-sm font-semibold text-slate-900">{alert.title}</h4>
-                    <motion.span 
-                      className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
-                      style={{ 
-                        backgroundColor: alert.severity === 'critical' ? '#ef4444' : 
-                                       alert.severity === 'warning' ? '#f59e0b' : 
-                                       alert.severity === 'info' ? '#3b82f6' : '#10b981' 
-                      }}
-                      animate={{ scale: [1, 1.1, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    >
-                      {alert.severity.toUpperCase()}
-                    </motion.span>
-                  </div>
-                  <p className="text-xs text-slate-600 mt-1">{alert.description}</p>
-                  <div className="mt-3 flex gap-3">
-                    {alert.actions.map((action, i) => (
-                      <motion.button 
-                        key={i}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="text-xs font-medium text-blue-600 hover:text-blue-800 hover:underline"
-                      >
-                        {action}
-                      </motion.button>
-                    ))}
-                  </div>
-                </div>
-                <span className="text-xs text-slate-400 whitespace-nowrap">{alert.time}</span>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Risk Trend Chart */}
-        <motion.div 
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          whileHover="hover"
-          className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col"
-        >
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h3 className="font-semibold text-slate-900">Risk Trend Analysis</h3>
-              <p className="text-xs text-slate-400">Live vs Predicted risk</p>
-            </div>
-            <motion.button 
-              whileHover={{ rotate: 90 }}
-              whileTap={{ scale: 0.9 }}
-              className="text-slate-400 hover:text-slate-600"
-            >
-              <Filter className="h-4 w-4" />
-            </motion.button>
-          </div>
-          
-          <div className="flex-1 flex items-center justify-center relative">
-            <svg width="100%" height="180" viewBox="0 0 280 150" className="overflow-visible">
-              <defs>
-                <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#ef4444" stopOpacity="0.3"/>
-                  <stop offset="100%" stopColor="#ef4444" stopOpacity="0"/>
-                </linearGradient>
-                <linearGradient id="predictionGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3"/>
-                  <stop offset="100%" stopColor="#3b82f6" stopOpacity="0"/>
-                </linearGradient>
-              </defs>
-
-              {/* Grid Lines */}
-              {[0, 37.5, 75, 112.5, 150].map((y, i) => (
-                <motion.line 
-                  key={i} 
-                  x1="0" y1={y} x2="280" y2={y} 
-                  stroke="#f1f5f9" 
-                  strokeWidth="1"
-                  initial={{ pathLength: 0 }}
-                  animate={{ pathLength: 1 }}
-                  transition={{ duration: 1, delay: i * 0.1 }}
-                />
-              ))}
-
-              {/* Live Risk Line */}
-              <motion.path 
-                d="M0,120 Q70,90 140,60 T280,20" 
-                fill="none" 
-                stroke="#ef4444" 
-                strokeWidth="3" 
-                strokeLinecap="round"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 1.5, ease: "easeOut" }}
-              />
-              
-              {/* Prediction Line */}
-              <motion.path 
-                d="M0,130 Q70,100 140,70 T280,30" 
-                fill="none" 
-                stroke="#3b82f6" 
-                strokeWidth="2" 
-                strokeLinecap="round"
-                strokeDasharray="5,5"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 1.5, delay: 0.3, ease: "easeOut" }}
-              />
-              
-              {/* Fill Area */}
-              <motion.path 
-                d="M0,120 Q70,90 140,60 T280,20 V150 H0 Z" 
-                fill="url(#areaGradient)" 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 1, delay: 0.5 }}
-              />
-
-              {/* Animated Points */}
-              {[120, 85, 50, 20].map((y, i) => (
-                <motion.circle 
-                  key={i} 
-                  cx={i * 93} 
-                  cy={y} 
-                  r="4" 
-                  fill="white" 
-                  stroke="#ef4444" 
-                  strokeWidth="2" 
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 1 + i * 0.2, type: "spring" }}
-                />
-              ))}
-            </svg>
-          </div>
-          
-          <div className="flex justify-between text-xs text-slate-400 mt-4 px-2">
-            {["Week 1", "Week 2", "Week 3", "Week 4"].map((week, i) => (
-              <motion.span 
-                key={i}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.5 + i * 0.1 }}
-              >
-                {week}
-              </motion.span>
-            ))}
-          </div>
-
-          {/* Legend */}
-          <div className="flex gap-4 mt-4 pt-4 border-t border-slate-100">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-0.5 bg-red-500"></div>
-              <span className="text-xs text-slate-500">Live Risk</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-0.5 border-b-2 border-dashed border-blue-500"></div>
-              <span className="text-xs text-slate-500">Predicted</span>
-            </div>
-          </div>
-        </motion.div>
-      </div>
 
       {/* District Table */}
       <motion.div 
@@ -450,84 +174,55 @@ export default function DiseaseSurveillanceDashboard() {
               <tr>
                 <th className="px-6 py-4 font-semibold">District</th>
                 <th className="px-6 py-4 font-semibold">Workers Monitored</th>
-                <th className="px-6 py-4 font-semibold">Live Risk Score</th>
+                <th className="px-6 py-4 font-semibold">Live spreading disease</th>
                 <th className="px-6 py-4 font-semibold">AI Prediction</th>
-                <th className="px-6 py-4 font-semibold">High Risk Sites</th>
                 <th className="px-6 py-4 font-semibold text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {districts.map((item, idx) => (
-                <motion.tr
-                  key={item.id}
-                  custom={idx}
-                  initial="hidden"
-                  animate="visible"
-                  variants={tableRowVariants}
-                  whileHover={{ backgroundColor: "rgba(241, 245, 249, 0.5)" }}
-                  onClick={() => setSelectedDistrict(item)}
-                  className="cursor-pointer transition-colors"
-                >
-                  <td className="px-6 py-4 font-medium text-slate-900">
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl">{item.icon}</span>
-                      <div>
-                        <div className="font-semibold">{item.district}</div>
-                        <div className="text-xs text-slate-400">Active monitoring</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-slate-600">
-                    <div className="font-medium">{item.workers}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="relative w-20 h-2 bg-slate-200 rounded-full overflow-hidden">
-                        <motion.div 
-                          className={`absolute h-full ${
-                            item.color === 'red' ? 'bg-gradient-to-r from-red-500 to-red-400' : 
-                            item.color === 'orange' ? 'bg-gradient-to-r from-orange-500 to-orange-400' : 
-                            item.color === 'yellow' ? 'bg-gradient-to-r from-yellow-500 to-yellow-400' : 
-                            'bg-gradient-to-r from-green-500 to-green-400'
-                          }`}
-                          initial={{ width: 0 }}
-                          animate={{ width: `${item.riskLevel}%` }}
-                          transition={{ delay: 0.7 + idx * 0.05, duration: 0.8 }}
-                        />
-                      </div>
-                      <span className="text-xs font-medium text-slate-700">{item.liveRisk.split('-')[0]}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="relative w-20 h-2 bg-slate-200 rounded-full overflow-hidden">
-                        <motion.div 
-                          className="absolute h-full bg-gradient-to-r from-blue-500 to-blue-400"
-                          initial={{ width: 0 }}
-                          animate={{ width: `${parseInt(item.predictedRisk.split('-')[1]) * 10}%` }}
-                          transition={{ delay: 0.8 + idx * 0.05, duration: 0.8 }}
-                        />
-                      </div>
-                      <span className="text-xs text-slate-500">{item.predictedRisk.split('-')[0]}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-slate-900">{item.highRisk}</span>
-                      <span className="text-xs text-slate-400">sites</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <motion.button 
-                      whileHover={{ scale: 1.05, x: 4 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="text-blue-600 hover:text-blue-800 font-medium text-xs hover:underline flex items-center gap-1 justify-end"
-                    >
-                      View Details <ChevronRight className="h-3 w-3" />
-                    </motion.button>
-                  </td>
-                </motion.tr>
-              ))}
+   {diseaseData?.map((item, idx) => (
+  <tr
+    key={idx}
+    className="cursor-pointer transition-colors hover:bg-slate-100"
+    onClick={() => setSelectedDistrict(districts.find(d => d.district === item["District"]))}
+  >
+    {/* District */}
+    <td className="px-6 py-4 font-medium text-slate-900">
+      {item["District"]}
+    </td>
+
+    {/* Workers Monitored */}
+    <td className="px-6 py-4 text-slate-600">
+      {item["Workers Monitored"]}
+    </td>
+
+    {/* Disease + AI Prediction */}
+    <td className="px-6 py-4 text-slate-600">
+      <div className="flex flex-col">
+        <span>{item["Top Disease Name"]}</span>
+      </div>
+    </td>
+    
+    <td className="px-6 py-4 text-slate-600">
+      {item["Top Disease %"]}%
+    </td>
+
+    {/* Action Button */}
+    <td className="px-6 py-4 text-right">
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className="text-blue-600 hover:text-blue-800 font-medium text-xs hover:underline"
+        onClick={() => setSelectedDistrict(districts.find(d => d.district === item["District"]))}
+      >
+        View Details <ChevronRight className="h-3 w-3 inline" />
+      </motion.button>
+    </td>
+  </tr>
+))}
+
+
+
             </tbody>
           </table>
         </div>

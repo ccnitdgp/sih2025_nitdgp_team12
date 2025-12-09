@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // DHRFrontend/app/api/translate/route.ts (Next.js App Router API Route)
 
 import { NextResponse } from "next/server";
@@ -7,6 +8,11 @@ import { NextResponse } from "next/server";
 const BACKEND_API_URL = process.env.DHR_BACKEND_URL || "http://localhost:5000";
 
 export async function POST(request: Request) {
+=======
+import { NextRequest, NextResponse } from 'next/server'
+const BASE_URL =  process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000/api/translate';
+export async function POST(request: NextRequest) {
+>>>>>>> 504f43d964c0fa33bb0b3e4e5db4932f382dc3ad
   try {
     // 1. Get the JSON payload from the React component
     const body = await request.json();

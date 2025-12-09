@@ -14,7 +14,7 @@ import DoctorProfileSidebar from "@/components/doctor-profile-sidebar"
 import { useToast } from "@/components/ui/use-toast"
 
 
-import api from "@/lib/api"
+import api, { doctorAPI } from "@/lib/api"
 
 import {
   Search,
@@ -70,7 +70,8 @@ interface Patient {
   visits: Visit[];
   
 }
-const DOCTOR_ID = "91d60e73-e29e-4c4d-a9a1-4b9810537e96" // Mocked logged-in doctor ID
+const DOCTOR_ID = "e8c77882-60d6-4d6c-b629-657ef384d251" // Mocked logged-in doctor ID
+const PATIENT_ID = "000257d2-ce99-4ea4-8a15-38185a8c9621" // Mocked patient ID for testing
 export default function DoctorDashboard() {
   // const [currentSection, setCurrentSection] = useState("patient-search")
   const [searchHealthId,setSearchHealthId]=useState<string>("");
@@ -251,12 +252,17 @@ export default function DoctorDashboard() {
             let response: any
             if (medicalRecord) {
                 // Update existing record
-                response = await api.medicalRecord.update(medicalRecord.id, recordData)
+                response = await api.medicalRecord.create( recordData);
+                setMedicalRecord(response?.medical_record ?? null)
+                
+
             } else {
                 // Create new record
                 response = await api.medicalRecord.create(recordData)
                 setMedicalRecord(response?.medical_record ?? null)
             }
+
+
 
             toast({ title: "Success", description: "Medical record saved successfully" })
         } catch (error: any) {
@@ -317,36 +323,58 @@ export default function DoctorDashboard() {
 
     // Save all prescriptions
     const savePrescriptions = async () => {
-        if (!patient || !medicalRecord) {
-            toast({ title: "Error", description: "Please load patient and create medical record first", variant: "destructive" })
-            return
-        }
+    if (!patient?.id || !medicalRecord?.id || !DOCTOR_ID) {
+        toast({
+            title: "Error",
+            description: "Please load patient and create medical record first",
+            variant: "destructive"
+        });
+        return;
+    }
 
-        setLoading(true)
-        try {
-            const prescriptionData = prescriptions.map(p => ({
+    setLoading(true);
+
+    try {
+        const prescriptionData = prescriptions
+            .filter(p => p.medicine)
+            .map(p => ({
                 medicine_name: p.medicine,
                 dosage: p.dosage,
                 frequency: p.frequency,
                 duration: p.duration,
                 instructions: p.instructions
-            })).filter((p: any) => p.medicine_name) // Only save non-empty prescriptions
+            }));
 
-            if (prescriptionData.length === 0) {
-                setLoading(false)
-                toast({ title: "Warning", description: "No prescriptions to save", variant: "destructive" })
-                return
-            }
-
-            await api.prescription.createBulk(patient.id, DOCTOR_ID, medicalRecord.id, prescriptionData)
-            toast({ title: "Success", description: `Saved ${prescriptionData.length} prescriptions` })
-        } catch (error: any) {
-            console.error("Error saving prescriptions:", error)
-            toast({ title: "Error", description: error?.message || "Failed to save prescriptions", variant: "destructive" })
-        } finally {
-            setLoading(false)
+        if (prescriptionData.length === 0) {
+            toast({
+                title: "Warning",
+                description: "No prescriptions to save",
+                variant: "destructive"
+            });
+            return;
         }
-    }
+
+      
+
+        toast({
+            title: "Success",
+            description: `Saved ${prescriptionData.length} prescriptions`
+        });
+          }  catch (error) {
+          const message = error instanceof Error ? error.message : "Something went wrong";
+          toast({
+              title: "Error",
+              description: message,
+              variant: "destructive",
+          });
+      }
+      finally {
+              setLoading(false);
+          }
+};
+
+
+    
 
   
 

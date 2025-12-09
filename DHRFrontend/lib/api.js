@@ -1,6 +1,8 @@
 // API Service for Doctor Dashboard Backend
 // Base URL for all API calls
 
+import { verify } from "crypto";
+
 const API_BASE_URL = 'http://localhost:5000/api';
 
 // Helper function to handle API responses
@@ -280,6 +282,44 @@ export const appointmentAPI = {
     }
 };
 
+export const authenication={
+
+   otpSend: async(phone)=>{
+    const response = await fetch(`${API_BASE_URL}/auth/send-otp`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(phone)
+        });
+        return handleResponse(response);
+
+   },
+
+   verifyOtp : async(phone,otp)=>{
+    const response = await fetch(`${API_BASE_URL}/auth/verify-otp`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({phone,otp})
+        });
+        return handleResponse(response);
+    },
+
+    doctorLogin: async(doctorId, password) => {
+        const response = await fetch(`${API_BASE_URL}/auth/doctorLogin`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ doctor_id: doctorId, password })
+        });
+        return handleResponse(response);
+    },
+     governmentLogin: async(email, password_hash) => {
+        const response = await fetch(`${API_BASE_URL}/auth/governmentLogin`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password_hash })
+        });
+        return handleResponse(response);
+    },
+}
 // Export all APIs
 export default {
     doctor: doctorAPI,
@@ -287,5 +327,6 @@ export default {
     prescription: prescriptionAPI,
     vitals: vitalsAPI,
     medicalRecord: medicalRecordAPI,
-    appointment: appointmentAPI
+    appointment: appointmentAPI,
+    auth:authenication
 };

@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Mic, Volume2, ArrowRightLeft, Globe, Loader2, Copy, Check, AlertCircle, X, RefreshCw, MessageSquare, Bot, Stethoscope } from 'lucide-react';
 
 
-const GEMINI_API_KEY = process.env.WORKER_DASHBOARD_GEMINI_API_KEY || "AIzaSyA3Ir23E0vhL_Jl2q2tRnP_Tsk2FXk_QMk"; 
+const GEMINI_API_KEY = process.env.NEXT_PUBLIC_WORKER_DASHBOARD_GEMINI_API_KEY || "";
 
 // === TypeScript Definitions ===
 declare global {

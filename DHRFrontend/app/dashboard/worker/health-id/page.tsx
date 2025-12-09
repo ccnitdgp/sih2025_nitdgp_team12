@@ -17,7 +17,7 @@ import {
   MapPin,
   Fingerprint
 } from "lucide-react"
-import { apiService } from "@/api/api"
+
 
 // --- Animation Variants ---
 const containerVariants = {

@@ -294,7 +294,7 @@ export default function VoiceTalkPage() {
 
   // === RENDER ===
   return (
-    <div className="flex flex-col lg:flex-row items-start justify-center p-4 font-sans text-slate-800 dark:text-slate-100 gap-6">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col lg:flex-row items-start justify-center p-4 font-sans text-slate-800 dark:text-slate-100 gap-6">
       
       {/* Main Bot Card Interface */}
       <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-3xl shadow-xl overflow-hidden border border-slate-100 dark:border-slate-700 flex flex-col h-[85vh] transition-all">
@@ -324,9 +324,9 @@ export default function VoiceTalkPage() {
 
           {/* Language Selectors */}
           <div className="bg-slate-100 dark:bg-slate-700 p-1 rounded-xl flex items-center justify-between shadow-inner relative overflow-hidden">
-             
+            
             {/* Source Selection */}
-            <select
+            <select 
               value={sourceLang.code}
               onChange={(e) => {
                   const l = LANGUAGES.find(lang => lang.code === e.target.value);
@@ -345,26 +345,26 @@ export default function VoiceTalkPage() {
             {/* ANIMATED MIDDLE SECTION */}
             <div className="relative flex items-center justify-center w-12 h-12">
                {/* 1. Double Tap Spin Animation */}
-               <button
-                  onClick={swapLanguages}
+               <button 
+                  onClick={swapLanguages} 
                   className={`
                     p-2 bg-white dark:bg-slate-600 rounded-full shadow-sm text-slate-500 dark:text-slate-200 hover:text-blue-600 z-20 transition-all duration-500
                     ${isSwapping ? 'rotate-[360deg] scale-110 bg-blue-100 text-blue-600' : ''}
                   `}
-               >
+                >
                   <ArrowRightLeft className="w-4 h-4" />
                </button>
 
                {/* 2. Single Tap Flow Animation (Behind button) */}
                {isListening && (
                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-50 z-10">
-                    <ChevronsRight className="w-8 h-8 text-blue-400 animate-pulse" />
+                    <ChevronsRight className="w-8 h-8 text-blue-400 animate-pulse" /> 
                  </div>
                )}
             </div>
 
             {/* Target Selection */}
-            <select
+            <select 
               value={targetLang.code}
               onChange={(e) => {
                   const l = LANGUAGES.find(lang => lang.code === e.target.value);
@@ -393,13 +393,13 @@ export default function VoiceTalkPage() {
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 placeholder={
-                    isListening ? "Listening..." :
-                    statusMessage ? statusMessage :
+                    isListening ? "Listening..." : 
+                    statusMessage ? statusMessage : 
                     "Tap Mic & Speak..."
                 }
                 className={`
                   w-full h-32 p-4 pr-12 bg-white dark:bg-slate-700 border-2 rounded-2xl focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-500 outline-none resize-none transition-all text-xl font-medium leading-relaxed
-                  ${isListening ? 'border-blue-500 shadow-lg shadow-blue-100 dark:shadow-blue-900/20 ring-4 ring-blue-50 dark:ring-blue-900/30' : 'border-slate-100 dark:border-slate-600 shadow-sm'}
+                  ${isListening ? 'border-blue-500 shadow-lg shadow-blue-100 dark:shadow-blue-900/20 ring-4 ring-blue-50 dark:ring-blue-900/30' : 'border-slate-100 dark:border-slate-600 shadow-sm'} 
                   ${statusMessage && !inputText ? 'placeholder:text-red-400' : 'placeholder:text-slate-300 dark:placeholder:text-slate-500'}
                 `}
               />
@@ -407,8 +407,8 @@ export default function VoiceTalkPage() {
                 <button onClick={() => setInputText('')} className="absolute top-3 right-3 text-slate-300 hover:text-slate-500 dark:hover:text-slate-200">
                     <X className="w-4 h-4" />
                 </button>
-               )}
-               <button
+              )}
+               <button 
                   onClick={() => speakText(inputText, sourceLang.speechCode)}
                   className="absolute bottom-3 right-3 p-2 text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-full transition-colors"
                   title="Listen (Browser or Google)"
@@ -420,16 +420,16 @@ export default function VoiceTalkPage() {
 
           {/* Action Area (Mic Button) */}
           <div className="flex justify-center -my-4 relative z-20">
-             <button
+             <button 
                 onClick={handleMicInteraction}
                 className={`
                   relative w-20 h-20 rounded-full flex items-center justify-center shadow-xl transition-all duration-300 border-4 select-none
-                  ${isListening
-                    ? 'bg-red-500 border-red-100 dark:border-red-900 text-white scale-110 shadow-red-200 dark:shadow-red-900/30'
+                  ${isListening 
+                    ? 'bg-red-500 border-red-100 dark:border-red-900 text-white scale-110 shadow-red-200 dark:shadow-red-900/30' 
                     : 'bg-blue-600 border-blue-100 dark:border-blue-900 text-white hover:scale-105 hover:bg-blue-700 shadow-blue-200 dark:shadow-blue-900/30'
                   }
                 `}
-             >
+              >
                 {isListening ? (
                     <div className="flex gap-1 h-6 items-center pointer-events-none">
                         <div className="w-1 bg-white animate-[bounce_1s_infinite] h-3"></div>
@@ -468,14 +468,14 @@ export default function VoiceTalkPage() {
 
                 {translatedText && (
                     <div className="flex justify-end gap-2 mt-2 pt-2 border-t border-blue-100/50 dark:border-blue-800/30">
-                        <button
+                        <button 
                         onClick={copyToClipboard}
                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 shadow-sm hover:text-blue-600 dark:hover:text-blue-400"
                         >
                         {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                         {copied ? 'Copied' : 'Copy'}
                         </button>
-                        <button
+                        <button 
                         onClick={() => speakText(translatedText, targetLang.speechCode)}
                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 text-xs font-semibold text-white shadow-sm hover:bg-blue-700"
                         >

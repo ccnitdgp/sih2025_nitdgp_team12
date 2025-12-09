@@ -36,16 +36,50 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import api from "@/lib/api"
 
 export default function HealthPortal() {
   const [activeUserType, setActiveUserType] = useState<"worker" | "doctor" | "govt">("worker")
-  const [authMethod, setAuthMethod] = useState<"password" | "otp">("password")
+  const [otp,setOtp]=useState("")
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [workAuthValue, setWorkAuthValue] = useState("")
+  const [doctorId, setDoctorId] = useState("")
+  const [doctorPassword, setDoctorPassword] = useState("")
   const router = useRouter()
 
+  const handleOtpSend = async () => {
+    try {
+      const response = await api.auth.otpSend({ phone: workAuthValue });
+      console.log("OTP sent successfully", response);
+      // Handle success - show toast notification, etc.
+    } catch (error) {
+      console.error("Failed to send OTP", error);
+      // Handle error - show error notification
+    }
+  }
+  const verifyOtp = async () => {
+    try {
+      console.log("Verifying OTP for", workAuthValue, otp);
+      
+         const response = await api.auth.verifyOtp(workAuthValue, otp);
+      console.log("OTP verified successfully", response);
+      if(response.success){
+        alert("loggin successfull");
+        router.push("/dashboard/worker")
+      }
+      // Handle success - show toast notification, etc. or error if not successful
+    } catch (error) {
+      alert("invalid creadintial")
+      console.error("Failed to send OTP", error);
+      console.error("OTP error:", (error as any)?.response?.data || (error as any).message);
+
+      // Handle error - show error notification
+    }
+  }
+
+  
   useEffect(() => {
     // Make callback global for Google script
     ;(window as any).googleTranslateElementInit = () => {
@@ -76,13 +110,28 @@ export default function HealthPortal() {
     // No cleanup required for evaluation case
   }, [])
 
-  const handleLogin = () => {
-    if (activeUserType === "worker") {
-      router.push("/dashboard/worker")
-    } else if (activeUserType === "govt") {
-      router.push("/dashboard/govt")
-    } else if (activeUserType === "doctor") {
-      router.push("/dashboard/doctor")
+
+    const handleLogin = async () => {
+    try {
+      if (activeUserType === "doctor") {
+        const response = await api.auth.doctorLogin(doctorId, doctorPassword)
+        if(response.success){
+          alert("Login successful")
+          router.push("/dashboard/doctor")
+        }
+        
+      } else if (activeUserType === "govt") {
+        // TODO: Implement government login logic
+        // const response = await api.auth.governmentLogin()
+        // if(response.success){
+        //   alert("Login successful")
+        // router.push("/dashboard/govt")
+        // }
+         router.push("/dashboard/govt")
+      }
+    } catch (error) {
+      alert("Login failed. Please check your credentials and try again.")
+      console.error("Login failed", error)
     }
   }
 
@@ -494,58 +543,28 @@ export default function HealthPortal() {
                     />
                   </div>
 
-                  <div className="flex gap-2">
-                    <Button
-                      variant={authMethod === "otp" ? "default" : "outline"}
-                      size="sm"
-                      className="flex-1 text-xs sm:text-sm h-9 transition-all-smooth"
-                      onClick={() => setAuthMethod("otp")}
-                    >
-                      Login with OTP
-                    </Button>
-                    <Button
-                      variant={authMethod === "password" ? "default" : "outline"}
-                      size="sm"
-                      className="flex-1 text-xs sm:text-sm h-9 transition-all-smooth"
-                      onClick={() => setAuthMethod("password")}
-                    >
-                      Login with Password
-                    </Button>
-                  </div>
-
-                  {authMethod === "otp" ? (
-                    <div>
-                      <Label htmlFor="otp" className="text-xs sm:text-sm font-medium">
-                        Enter OTP <span className="text-red-500">*</span>
-                      </Label>
-                      <div className="flex gap-2 mt-1">
-                        <Input
-                          id="otp"
-                          placeholder="Enter 6-digit OTP"
-                          className="flex-1 text-sm sm:text-base h-10 sm:h-11 transition-all-smooth focus:border-blue-500"
-                        />
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-10 sm:h-11 whitespace-nowrap transition-all-smooth"
-                        >
-                          Send OTP
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div>
-                      <Label htmlFor="workerPassword" className="text-xs sm:text-sm font-medium">
-                        Password <span className="text-red-500">*</span>
-                      </Label>
+                  <div>
+                    <Label htmlFor="otp" className="text-xs sm:text-sm font-medium">
+                      Enter OTP <span className="text-red-500">*</span>
+                    </Label>
+                    <div className="flex gap-2 mt-1">
                       <Input
-                        id="workerPassword"
-                        type="password"
-                        placeholder="Enter your password"
-                        className="mt-1 text-sm sm:text-base h-10 sm:h-11 transition-all-smooth focus:border-blue-500"
+                        id="otp"
+                        placeholder="Enter 6-digit OTP"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value)}
+                        className="flex-1 text-sm sm:text-base h-10 sm:h-11 transition-all-smooth focus:border-blue-500"
                       />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-10 sm:h-11 whitespace-nowrap transition-all-smooth"
+                        onClick={handleOtpSend}
+                      >
+                        Send OTP
+                      </Button>
                     </div>
-                  )}
+                  </div>
                 </>
               )}
 
@@ -560,6 +579,8 @@ export default function HealthPortal() {
                       id="doctorId"
                       placeholder="Enter your Doctor ID"
                       className="mt-1 text-sm sm:text-base h-10 sm:h-11 transition-all-smooth focus:border-blue-500"
+                      value={doctorId}
+                      onChange={(e) => setDoctorId(e.target.value)}
                     />
                   </div>
                   <div>
@@ -571,6 +592,8 @@ export default function HealthPortal() {
                       type="password"
                       placeholder="Enter your password"
                       className="mt-1 text-sm sm:text-base h-10 sm:h-11 transition-all-smooth focus:border-blue-500"
+                      value={doctorPassword}
+                      onChange={(e) => setDoctorPassword(e.target.value)}
                     />
                   </div>
                 </>
@@ -642,7 +665,7 @@ export default function HealthPortal() {
               {/* Login Button */}
               <Button
                 className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-sm sm:text-base transition-all-smooth hover:scale-[1.02] hover:shadow-lg cursor-pointer"
-                onClick={handleLogin}
+                onClick={activeUserType === 'worker' ? verifyOtp : handleLogin}
               >
                 <Shield className="h-4 w-4 mr-2" />
                 सुरक्षित प्रवेश / Secure Login
